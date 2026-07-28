@@ -1,0 +1,7 @@
+- id: env-doctor
+  name: Env Doctor Audit
+  description: Audit local .env files against .env.example
+  entry: python -m src.cli
+  language: python
+  files: ^(\.env|\.env\.example)$
+  pass_filenames: false
