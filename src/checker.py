@@ -10,8 +10,13 @@ class EnvDoctor:
         target_vars = EnvParser.parse_file(self.target_path)
         example_vars = EnvParser.parse_file(self.example_path)
 
+        # Missing: Key is defined in example, but absent in target
         missing_keys = [k for k in example_vars if k not in target_vars]
-        empty_keys = [k for k, v in target_vars.items() if v is None and example_vars.get(k) is not None]
+
+        # Empty: Key is in example and present in target, but target value is None/blank
+        empty_keys = [k for k in example_vars if k in target_vars and target_vars[k] is None]
+
+        # Extra: Key exists in target, but not listed in example
         extra_keys = [k for k in target_vars if k not in example_vars]
 
         return {
