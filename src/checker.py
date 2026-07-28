@@ -36,8 +36,16 @@ class EnvDoctor:
         target_vars = EnvParser.parse_file(self.target_path)
         example_vars = EnvParser.parse_file(self.example_path)
 
+        # Missing: Defined in example, absent in target
         missing_keys = [k for k in example_vars if k not in target_vars]
-        empty_keys = [k for k in example_vars if k in target_vars and target_vars[k]["value"] is None]
+
+        # Empty: Present in both, but value inside the target dictionary is None
+        empty_keys = [
+            k for k in example_vars 
+            if k in target_vars and target_vars[k]["value"] is None
+        ]
+
+        # Extra: Present in target, absent in example
         extra_keys = [k for k in target_vars if k not in example_vars]
 
         # Type validation
@@ -46,13 +54,21 @@ class EnvDoctor:
             expected_type = exp_data["type"]
             if k in target_vars and target_vars[k]["value"] is not None and expected_type:
                 if not self._validate_type(target_vars[k]["value"], expected_type):
-                    invalid_types.append({"key": k, "expected": expected_type, "got": target_vars[k]["value"]})
+                    invalid_types.append({
+                        "key": k, 
+                        "expected": expected_type, 
+                        "got": target_vars[k]["value"]
+                    })
 
         # Secret scanning
         weak_secrets = self._scan_secrets(target_vars)
 
-        healthy = (len(missing_keys) == 0 and len(empty_keys) == 0 and 
-                   len(invalid_types) == 0 and len(weak_secrets) == 0)
+        healthy = (
+            len(missing_keys) == 0 and 
+            len(empty_keys) == 0 and 
+            len(invalid_types) == 0 and 
+            len(weak_secrets) == 0
+        )
 
         return {
             "healthy": healthy,
